@@ -40,7 +40,9 @@
                 <div class="col-md-6 col-sm-6">
                   
                     <div class="thumbnail">
-                        <img src="<%= car.image %>" width="100%"style="height: 300px;">
+                      <% for(let img of car.images){ %>
+                        <img src="<%= img.url %>" width="100%"style="height: 300px;">
+                        <%}%>        
                         <div class="caption">
                             <h4><%=car.name %></h4>
                             

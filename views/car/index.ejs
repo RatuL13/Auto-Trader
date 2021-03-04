@@ -135,29 +135,50 @@
 </header>
 <!--  <% if(typeof cars!=="undefined") { %> -->
 <!-- <div class="row text-center" style="display:flex; flex-wrap: wrap;"> -->
-<% cars.forEach(function(car){%>
+ <% cars.forEach(function(car){ %> 
 <!-- <div class="col-md-4 col-sm-6">  -->
 
 
     <div class="card mb-3">
         <div class="row no-gutters text-center" style="display:flex; flex-wrap: wrap;">
           <div class="col-md-4">
-                <img src="<%= car.image %>" class="card-img" alt="..." height="100%">   
+          
+              <img src="<%= car.images[0].url %>" class="card-img" alt="..." style="height: 100%;" >   
+           
+                
           </div>
           <div class="col-md-3">
               <div class="col-md-12">
-                <img src="<%= car.image %>" class="card-img" alt="...">   
+               
+                <% if(car.images.length>=4) { %>
+                  <img src="<%= car.images[1].url %>" class="card-img" alt="..." style="padding-top: 2px; padding-bottom: 2px;" > 
+                  <% } else { %>  
+                    <img src="<%= car.images[0].url %>" class="card-img" alt="..." style="padding-top: 2px; padding-bottom: 2px;"> 
+                    <% } %>
+               
               </div>
               <div class="col-md-12">
-                <img src="<%= car.image %>" class="card-img" alt="...">   
+              
+                <% if(car.images.length>=4) { %>
+                  <img src="<%= car.images[2].url %>" class="card-img" alt="..." style="padding-top: 2px; padding-bottom: 2px;"> 
+                  <% } else { %>  
+                    <img src="<%= car.images[0].url %>" class="card-img" alt="..." style="padding-top: 2px; padding-bottom: 2px;"> 
+                    <% } %>
+                
               </div>
-              <div class="col-md-12">
-                <img src="<%= car.image %>" class="card-img" alt="...">   
+              <div class="col-md-12"> 
+                
+                <% if(car.images.length>=4) { %>
+                  <img src="<%= car.images[3].url %>" class="card-img" alt="..." style="padding-top: 2px; padding-bottom: 2px;"> 
+                  <%} else { %>  
+                    <img src="<%= car.images[0].url %>" class="card-img" alt="..." style="padding-top: 2px; padding-bottom: 2px;"> 
+                    <% } %>
+                
               </div>
           </div>
           <div class="col-md-5">
             <div class="card-body">
-              <h5 class="card-title"><%=car.price %></h5>
+              <h5 class="card-title" style="padding-top: 50px;"><%=car.price %></h5>
               <h6 class="card-title"><%=car.name %></h6>
               <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
               <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
@@ -211,7 +232,7 @@
         </p>
     </div> -->
  <!-- </div> -->
-<%});%>
+  <% }) %> 
  <!-- <% } %>  -->
   </div> 
 

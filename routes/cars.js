@@ -7,9 +7,14 @@ var Review=require("../models/review");
 var middleware=require("../middleware/index.js");
 var request=require("request");
 const url =require("url");
+
+var cloudinary=require("../Cloudinary/index.js");
+
 //IMAGE UPLOAD
-var multer = require('multer');
-var storage = multer.diskStorage({
+const multer = require('multer');
+const{storage}=require("../Cloudinary/index");
+const upload = multer({storage});
+/*var storage = multer.diskStorage({
   filename: function(req, file, callback) {
     callback(null, Date.now() + file.originalname);
   }
@@ -21,15 +26,7 @@ var imageFilter = function (req, file, cb) {
     }
     cb(null, true);
 };
-var upload = multer({ storage: storage, fileFilter: imageFilter})
-
-var cloudinary = require('cloudinary');
-cloudinary.config({ 
-  cloud_name: 'daeqwemkc', 
-  api_key: process.env.CLOUDINARY_API_KEY, 
-  api_secret: process.env.CLOUDINARY_API_SECRET
-});
-
+var upload = multer({ storage: storage, fileFilter: imageFilter});*/
 
 router.get("/",function(req,res){
     var noMatch=null;
@@ -260,8 +257,8 @@ router.post("/maxP",function(req,res){
 }
 });
 
-router.post("/",middleware.isLoggedIn, upload.single('image'),function(req,res){
-    cloudinary.v2.uploader.upload(req.file.path, function(err, result) {
+router.post("/",middleware.isLoggedIn,upload.array("image"),function(req,res){
+    /*cloudinary.v2.uploader.upload(req.file.path, function(err, result) {
         if(err) {
           req.flash("error", err.message);
           return res.redirect("back");
@@ -269,10 +266,8 @@ router.post("/",middleware.isLoggedIn, upload.single('image'),function(req,res){
       // add cloudinary url for the image to the campground object under image property
       req.body.image = result.secure_url;
       // add image's public_id to campground object
-      req.body.imageId = result.public_id;
+      req.body.imageId = result.public_id;*/ 
     var name=req.body.name;
-    var image=req.body.image;
-    var imageId=req.body.imageId;
     var description=req.body.description;
     var price=req.body.price;
     var placename=req.body.placename;
@@ -284,8 +279,7 @@ router.post("/",middleware.isLoggedIn, upload.single('image'),function(req,res){
     }
  Car.create({
         name:name,
-        image:image,
-        imageId:imageId,
+        //images:req.files.map(f =>({url:f.path,filename:f.filename})),
         description:description,
         price: price,
         placename:placename,
@@ -297,7 +291,12 @@ router.post("/",middleware.isLoggedIn, upload.single('image'),function(req,res){
             req.flash("error", err.message);
             res.redirect("back");
         }
-        else{   
+        else{  
+            car.images=req.files.map(f =>({url:f.path,filename:f.filename}));
+             car.save(function(err){
+                 if(err)
+                 console.log(err);
+             });
             User.findById(req.user._id).populate('followers').exec(function(err,user){
                 if(err)
                 {
@@ -339,7 +338,6 @@ router.post("/",middleware.isLoggedIn, upload.single('image'),function(req,res){
               res.redirect('back');
             }
           */
-        
              res.redirect("/cars");
 
         }
@@ -347,13 +345,13 @@ router.post("/",middleware.isLoggedIn, upload.single('image'),function(req,res){
  }
    
 });
-    });
+    //});
 });
 
     router.get("/new",middleware.isLoggedIn,function(req,res){
  res.render("car/new");
 });
-// Shows more Info About a Particular Hotel
+// Shows more Info About a Particular Car
 router.get("/:id",function(req,res){
     Car.findById(req.params.id).populate("comments likes").populate({
         path: "reviews",
@@ -400,7 +398,7 @@ router.get("/:id/edit",middleware.checkCarOwnership,function(req,res){
         });
            
 //PUT ROUTE
-router.put("/:id",middleware.checkCarOwnership,upload.single("image"),function(req,res){
+router.put("/:id",middleware.checkCarOwnership,upload.array("editImages"),function(req,res){
    
     Car.findById(req.params.id, async function(err, car){
         if(err){
@@ -408,7 +406,7 @@ router.put("/:id",middleware.checkCarOwnership,upload.single("image"),function(r
             res.redirect("back");
         } 
         else{
-            if(req.file){
+            /*if(req.file){
                 try{
                     await cloudinary.v2.uploader.destroy(car.imageId);    
                     var result=await cloudinary.v2.uploader.upload(req.file.path);
@@ -418,8 +416,31 @@ router.put("/:id",middleware.checkCarOwnership,upload.single("image"),function(r
                 catch(err){
                    req.flash("error",err.message);
                    return res.redirect("back");
-                }            
+                } */
+                if((req.file||req.files))
+                {
+                    try{
+                        car.images.forEach(async function(img,i){
+                        await cloudinary.uploader.destroy(img.filename);    
+                        })
+                       car.images=req.files.map(f =>({url:f.path,filename:f.filename}));
+                    // const imgs=req.files.map(f =>({url:f.path, filename:f.filename}));
+                     //car.images.push(...imgs);
+                     car.save();
                     }
+                    catch(err){
+                        req.flash("error",err.message);
+                        return res.redirect("back");
+                     }
+                }
+             /*if(req.body.deleteImages)
+                {
+                    for(let filename of req.body.deleteImages)
+                    await cloudinary.uploader.destroy(filename);
+
+                    await car.updateOne({$pull:{images:{filename:{$in: req.body.deleteImages}}}});           
+                } */
+            
             
             car.name = req.body.name;
             car.placename = req.body.placename;
@@ -449,11 +470,18 @@ router.delete("/:id",middleware.checkCarOwnership,function(req,res){
           }
           else{
               try{
-              await cloudinary.v2.uploader.destroy(car.imageId); 
+             // await cloudinary.uploader.destroy(car.images.filename); 
+              //const {id}=req.params;
+              //await Car.findByIdAndDelete(id); 
+              car.images.forEach(async function(img,i){
+                await cloudinary.uploader.destroy(img.filename); 
+              }) 
+              //const {id}=req.params;
+              //await Car.findByIdAndDelete(id);  
               car.remove();
               req.flash("success",car.name+" "+"deleted successfully!");
               res.redirect("/cars");
-              }
+            }
               catch(err){
                 req.flash("error",err.message);
                 return res.redirect("back");

@@ -14,8 +14,10 @@ var car=new Schema({
     username: String
 }*/
     name: String,
-    image: String ,
-    imageId: String,
+    images: [{
+        url:String,
+        filename:String
+    }],
     description: String,
     price: Number,
     placename: String,

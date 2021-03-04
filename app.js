@@ -1,3 +1,6 @@
+if(process.env.NODE_ENV!=="production"){
+require("dotenv").config();
+}
 var express=require("express");
 var app=express();
 var port=process.env.PORT || 3000;
@@ -17,7 +20,7 @@ var cookieParser = require('cookie-parser');
 var Car= require("./models/car");
 var User=require("./models/user");
 var Cart=require("./models/cart");
-mongoose.connect("mongodb://localhost:27017/autotrader", {useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.connect(process.env.DATABASEURL, {useNewUrlParser: true, useUnifiedTopology: true});
    
    var commentRoutes         = require("./routes/comments"),
     reviewRoutes          = require("./routes/reviews"),
